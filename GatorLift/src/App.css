@@ -17,6 +17,24 @@
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
+.welcome-header {
+  font-family: Helvetica;
+  font-weight: bold;
+  font-size: 3em;
+  color: rgb(57, 120, 202);
+}
+.welcome-text {
+  font-family: Helvetica;
+  font-weight: bold;
+  font-size: 1.5em;
+  color: rgb(4, 65, 144);
+}
+.navbar-custom {
+  background: radial-gradient(circle, rgb(55, 55, 138), black);
+}
+.navbar-brand {
+  color: rgb(197, 197, 197);
+}
 
 @keyframes logo-spin {
   from {

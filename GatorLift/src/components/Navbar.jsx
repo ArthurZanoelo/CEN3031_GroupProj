@@ -22,9 +22,9 @@ function Navbar() {
   };
 
   return (
-    <BootstrapNavbar bg="dark" variant="dark" expand="lg">
+    <BootstrapNavbar bg="dark" variant="dark" expand="lg" className="navbar-custom">
       <Container fluid>
-        <BootstrapNavbar.Brand href="/" className="ms-4">GatorLift</BootstrapNavbar.Brand>
+        <BootstrapNavbar.Brand href="/" className="ms-4 navbar-brand">GatorLift</BootstrapNavbar.Brand>
         <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
         <BootstrapNavbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto me-4">

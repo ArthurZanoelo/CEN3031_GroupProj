@@ -16,7 +16,12 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/" element={<h1>Welcome to GatorLift</h1>} />
+            <Route path="/" element={
+              <>
+                <h1 className="welcome-header">Welcome to GatorLift</h1>
+                <p className="welcome-text">Press the sign in button to get started!</p>
+              </>
+            } />
           </Routes>
         </Container>
       </Router>
