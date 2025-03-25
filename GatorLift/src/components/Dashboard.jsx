@@ -22,19 +22,10 @@ function Dashboard() {
     }
   };
 
-  const getSubtitle = () => {
-    switch (location.pathname) {
-      case '/offer-ride':
-      case '/find-ride':
-      case '/my-rides':
-      case '/profile':
-    }
-  };
-
   return (
     <Container className="mt-4">
       <h2>{getTitle()}</h2>
-      <p className="pb-5">{getSubtitle()}</p>
+      <p className="pb-5"></p>
 
       {(location.pathname === '/' || location.pathname === '/dashboard') && (
         <div className="d-flex flex-wrap justify-content-center gap-3">
