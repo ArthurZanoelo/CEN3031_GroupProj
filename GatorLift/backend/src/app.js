@@ -18,6 +18,7 @@ app.use(cors({
 app.post('/api/auth/register', authController.register);
 app.post('/api/auth/login', authController.login);
 app.post('/api/auth/logout', auth, authController.logout);
+app.get('/api/auth/verify', auth, authController.verifyToken);
 
 // Protected route example
 app.get('/api/user/profile', auth, (req, res) => {

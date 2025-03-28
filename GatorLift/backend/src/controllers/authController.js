@@ -79,8 +79,24 @@ const logout = (req, res) => {
   res.json({ message: 'Logged out successfully' });
 };
 
+const verifyToken = async (req, res) => {
+  try {
+    // The auth middleware will have already verified the token
+    // and added the user id to req.user
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.json({ email: user.email });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   register,
   login,
-  logout
+  logout,
+  verifyToken
 }; 

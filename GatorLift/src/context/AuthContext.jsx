@@ -1,5 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
@@ -9,32 +8,52 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
-
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // checks if the user is logged in, if so takes them to the dashboard
-    const token = localStorage.getItem('token');
-    if (token) {
-      fetch('http://localhost:3000/api/auth/me', {
-        method: 'GET',
-        credentials: 'include',
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.user) {
-            setCurrentUser(data.user);
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          // Verify token with backend
+          const response = await fetch('http://localhost:3000/api/auth/verify', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            credentials: 'include'
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setCurrentUser({ email: data.email });
+          } else {
+            // If token is invalid, clear it
+            localStorage.removeItem('token');
+            setCurrentUser(null);
           }
-        })
-        .catch(err => console.error('Auth check failed:', err));
-    }
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
+  const value = {
+    currentUser,
+    setCurrentUser,
+    loading
+  };
 
-  const value = { currentUser, setCurrentUser };
-
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
 }
 
 
