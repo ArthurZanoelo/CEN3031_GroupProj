@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import Dashboard from './components/Dashboard';
+import CarpoolPostForm from './components/CarpoolPostForm';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -40,6 +41,11 @@ function AppContent() {
           <Route path="/dashboard" element={
             <PrivateRoute>
               <Dashboard />
+            </PrivateRoute>
+          } />
+          <Route path="/create-post" element={
+            <PrivateRoute>
+              <CarpoolPostForm />
             </PrivateRoute>
           } />
           <Route path="/offer-ride" element={
