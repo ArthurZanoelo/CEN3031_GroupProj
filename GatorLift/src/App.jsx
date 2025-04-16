@@ -5,6 +5,7 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import Dashboard from './components/Dashboard';
 import CarpoolPostForm from './components/CarpoolPostForm';
+import CarpoolPostList from './components/CarpoolPostList';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -55,7 +56,7 @@ function AppContent() {
           } />
           <Route path="/find-ride" element={
             <PrivateRoute>
-              <Dashboard activeTab="find-ride" />
+              <CarpoolPostList />
             </PrivateRoute>
           } />
           <Route path="/my-rides" element={

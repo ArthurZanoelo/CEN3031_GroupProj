@@ -4,6 +4,11 @@ class CarpoolPost {
     static async create(postData) {
         const { userId, departureLocation, arrivalLocation, departureDate, seatsAvailable, contactInfo } = postData;
         
+        console.log('Creating carpool post with data:', {
+            userId, departureLocation, arrivalLocation, 
+            departureDate, seatsAvailable, contactInfo
+        });
+        
         const query = `
             INSERT INTO carpool_posts 
             (user_id, departure_location, arrival_location, departure_date, seats_available, contact_info)
@@ -12,21 +17,30 @@ class CarpoolPost {
         
         try {
             const [result] = await db.execute(query, [
-                userId,
+                userId, 
                 departureLocation,
                 arrivalLocation,
                 departureDate,
                 seatsAvailable,
-                contactInfo
+                contactInfo || null // Handle empty contact info
             ]);
+            
+            console.log('Post created successfully with ID:', result.insertId);
             return result.insertId;
         } catch (error) {
+            console.error('Database error creating carpool post:', error);
             throw new Error('Error creating carpool post: ' + error.message);
         }
     }
 
     static validate(postData) {
+        console.log('Validating carpool post data:', postData);
+        
         const errors = [];
+        
+        if (!postData.userId) {
+            errors.push('User ID is required');
+        }
         
         if (!postData.departureLocation) {
             errors.push('Departure location is required');
@@ -46,6 +60,7 @@ class CarpoolPost {
             errors.push('Number of seats available must be at least 1');
         }
         
+        console.log('Validation errors:', errors);
         return errors;
     }
 }
