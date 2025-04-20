@@ -20,3 +20,14 @@ CREATE TABLE IF NOT EXISTS carpool_posts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 ); 
+
+CREATE TABLE IF NOT EXISTS profile_settings (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    contact_info VARCHAR(255),
+    seats_available INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+); 

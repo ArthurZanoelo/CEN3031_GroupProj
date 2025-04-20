@@ -16,6 +16,7 @@ const CarpoolPostForm = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [showConfirmation, setShowConfirmation] = useState(false);
+    const [userProfile, setUserProfile] = useState(null);
 
     // Ensure user is logged in
     useEffect(() => {
@@ -23,6 +24,35 @@ const CarpoolPostForm = () => {
             navigate('/login');
         }
     }, [currentUser, navigate]);
+
+    // Fetch user profile data
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/api/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    setUserProfile(data);
+                    // Autofill contact info and seats available if they exist
+                    setFormData(prev => ({
+                        ...prev,
+                        contactInfo: data.contactInfo || prev.contactInfo,
+                        seatsAvailable: data.seatsAvailable || prev.seatsAvailable
+                    }));
+                }
+            } catch (err) {
+                console.error('Error fetching profile:', err);
+            }
+        };
+
+        if (currentUser) {
+            fetchProfile();
+        }
+    }, [currentUser]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

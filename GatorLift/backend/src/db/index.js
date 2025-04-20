@@ -41,6 +41,21 @@ const testConnection = async () => {
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         `);
+
+        // Ensure the profile_settings table exists with proper foreign key
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS profile_settings (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                user_id INT NOT NULL,
+                first_name VARCHAR(255),
+                last_name VARCHAR(255),
+                contact_info VARCHAR(255),
+                seats_available INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        `);
         
         console.log('Database tables initialized successfully');
         connection.release();

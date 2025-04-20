@@ -3,6 +3,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const authController = require('./controllers/authController');
 const carpoolPostController = require('./controllers/carpoolPostController');
+const ProfileController = require('./controllers/ProfileController');
 const auth = require('./middleware/auth');
 require('dotenv').config();
 
@@ -29,6 +30,9 @@ app.post('/api/auth/login', authController.login);
 app.post('/api/auth/logout', auth, authController.logout);
 app.get('/api/auth/verify', auth, authController.verifyToken);
 
+app.get('/api/profile', auth, ProfileController.getProfile);
+app.put('/api/profile', auth, ProfileController.updateProfile);
+
 // Carpool post routes
 app.post('/api/carpool-posts', auth, (req, res, next) => {
   console.log('User from auth middleware:', req.user);
@@ -36,11 +40,6 @@ app.post('/api/carpool-posts', auth, (req, res, next) => {
   next();
 }, carpoolPostController.createCarpoolPost);
 app.get('/api/carpool-posts', carpoolPostController.getAllCarpoolPosts);
-
-// Protected route example
-app.get('/api/user/profile', auth, (req, res) => {
-  res.json({ message: 'Protected route accessed successfully' });
-});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

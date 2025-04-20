@@ -1,11 +1,35 @@
 import { Container, Card, Button } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useState, useEffect } from 'react';
 
 function Dashboard() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [userProfile, setUserProfile] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/profile', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setUserProfile(data);
+        }
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+      }
+    };
+
+    if (currentUser) {
+      fetchProfile();
+    }
+  }, [currentUser]);
 
   const getTitle = () => {
     switch (location.pathname) {
@@ -18,7 +42,10 @@ function Dashboard() {
       case '/profile':
         return 'Account Settings';
       default:
-        return 'Welcome, ' + (currentUser?.email || 'User') + '!';
+        if (userProfile?.firstName) {
+          return `Welcome, ${userProfile.firstName}!`;
+        }
+        return `Welcome, ${currentUser?.email || 'User'}!`;
     }
   };
 
