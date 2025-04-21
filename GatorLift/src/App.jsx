@@ -6,6 +6,7 @@ import Register from './components/Auth/Register';
 import Dashboard from './components/Dashboard';
 import CarpoolPostForm from './components/CarpoolPostForm';
 import CarpoolPostList from './components/CarpoolPostList';
+import RideHistory from './components/RideHistory';
 import ProfileSettings from './components/ProfileSettings';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -62,7 +63,7 @@ function AppContent() {
           } />
           <Route path="/my-rides" element={
             <PrivateRoute>
-              <Dashboard activeTab="my-rides" />
+              <RideHistory />
             </PrivateRoute>
           } />
           <Route path="/profile" element={

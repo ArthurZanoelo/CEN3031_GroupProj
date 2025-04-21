@@ -38,7 +38,7 @@ function Dashboard() {
       case '/find-ride':
         return 'Find a Ride';
       case '/my-rides':
-        return 'Ride History';
+        return 'Accepted Rides';
       case '/profile':
         return 'Account Settings';
       default:
@@ -72,7 +72,7 @@ function Dashboard() {
 
           <Card style={{ width: '18rem' }}>
             <Card.Body>
-              <Card.Title>Ride History</Card.Title>
+              <Card.Title>Accepted Rides</Card.Title>
               <Button variant="primary" onClick={() => navigate('/my-rides')}>View Rides</Button>
             </Card.Body>
           </Card>

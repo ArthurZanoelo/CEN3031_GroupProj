@@ -124,8 +124,8 @@ const CarpoolPostForm = () => {
                 departureLocation: '',
                 arrivalLocation: '',
                 departureDate: '',
-                seatsAvailable: '',
-                contactInfo: ''
+                seatsAvailable:     (userProfile?.seatsAvailable ?? '').toString(),
+                contactInfo:        userProfile?.contactInfo ?? ''
             });
             setShowConfirmation(false);
         } catch (err) {

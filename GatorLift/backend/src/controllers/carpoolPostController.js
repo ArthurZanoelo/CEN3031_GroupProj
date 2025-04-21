@@ -42,20 +42,42 @@ const createCarpoolPost = async (req, res) => {
     }
 };
 
-// New: Get all carpool posts
 const getAllCarpoolPosts = async (req, res) => {
-    try {
-        const [rows] = await db.execute(`
-            SELECT carpool_posts.*, users.email as userEmail
-            FROM carpool_posts
-            JOIN users ON carpool_posts.user_id = users.id
-            ORDER BY carpool_posts.departure_date ASC
-        `);
-        res.json(rows);
-    } catch (error) {
-        console.error('Error fetching carpool posts:', error);
-        res.status(500).json({ error: 'Failed to fetch carpool posts' });
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'Unauthorized' });
     }
+    const userId = req.user.id;
+
+    const [rows] = await db.execute(`
+      SELECT
+        cp.*,
+        u.email AS userEmail,
+        IFNULL(ac.acceptedCnt, 0) AS acceptedCount,
+        (cp.seats_available - IFNULL(ac.acceptedCnt, 0)) AS remainingSeats
+      FROM   carpool_posts cp
+      JOIN   users u  ON cp.user_id = u.id
+      LEFT JOIN (
+          SELECT post_id, COUNT(*) AS acceptedCnt
+          FROM   accepted_rides
+          GROUP  BY post_id
+      ) ac ON ac.post_id = cp.id
+      /* Hide rides THIS user already accepted */
+      WHERE  cp.id NOT IN (
+        SELECT post_id FROM accepted_rides WHERE user_id = ?
+      )
+      /* Hide rides that are already full */
+        AND (cp.seats_available - IFNULL(ac.acceptedCnt, 0)) > 0
+      ORDER BY cp.departure_date ASC
+      `,
+      [userId]                 // <-- exactly ONE placeholder ⇔ ONE value
+    );
+
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching carpool posts:', error);
+    res.status(500).json({ error: 'Failed to fetch carpool posts' });
+  }
 };
 
 module.exports = {

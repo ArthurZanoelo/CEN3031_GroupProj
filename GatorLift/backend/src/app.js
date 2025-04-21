@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 const authController = require('./controllers/authController');
 const carpoolPostController = require('./controllers/carpoolPostController');
 const ProfileController = require('./controllers/ProfileController');
+const RideHistoryController = require('./controllers/RideHistoryController');
 const auth = require('./middleware/auth');
 require('dotenv').config();
 
@@ -39,7 +40,16 @@ app.post('/api/carpool-posts', auth, (req, res, next) => {
   console.log('Request body:', req.body);
   next();
 }, carpoolPostController.createCarpoolPost);
-app.get('/api/carpool-posts', carpoolPostController.getAllCarpoolPosts);
+app.get('/api/carpool-posts', auth, carpoolPostController.getAllCarpoolPosts);
+
+app.post('/api/carpool-posts/:postId/accept', auth, RideHistoryController.acceptRide);
+app.delete('/api/ride-history/:postId', auth, RideHistoryController.cancelRide);
+
+app.get('/api/accepted-counts', auth, RideHistoryController.getAcceptedCounts);
+app.get('/api/ride-history', auth, RideHistoryController.getRideHistory);
+
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

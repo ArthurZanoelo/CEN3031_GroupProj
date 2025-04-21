@@ -56,6 +56,18 @@ const testConnection = async () => {
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         `);
+
+        // Ensure the ride_history table exists with proper foreign key
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS accepted_rides (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                user_id INT NOT NULL,
+                post_id INT NOT NULL,
+                accepted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (post_id) REFERENCES carpool_posts(id)
+        )
+        `);
         
         console.log('Database tables initialized successfully');
         connection.release();
