@@ -85,22 +85,46 @@ const acceptRide = async (req, res) => {
       }
   
       const userId = req.user.id;
+      const { from, to, day, minSeats } = req.query;
   
-      const [rides] = await db.execute(`
-        SELECT cp.*, ar.accepted_at, u.email AS userEmail
-        FROM carpool_posts cp
-        JOIN accepted_rides ar ON cp.id = ar.post_id
-        JOIN users u ON cp.user_id = u.id
-        WHERE ar.user_id = ?
+      let extraWhere = '';
+      const params = [userId];
+  
+      if (day) {
+        extraWhere += ' AND DATE(cp.departure_date) = ?';
+        params.push(day);
+      } else {
+        if (from) { extraWhere += ' AND cp.departure_date >= ?'; params.push(from); }
+        if (to)   { extraWhere += ' AND cp.departure_date <= ?'; params.push(to);   }
+      }
+  
+      if (minSeats) {
+        extraWhere += ' AND (cp.seats_available - (   \
+                          SELECT COUNT(*) FROM accepted_rides ar2 \
+                          WHERE ar2.post_id = cp.id)) >= ?';
+        params.push(parseInt(minSeats, 10));
+      }
+  
+      const [rides] = await db.execute(
+        `
+        SELECT cp.*, u.email AS userEmail
+        FROM   carpool_posts cp
+        JOIN   accepted_rides ar ON cp.id = ar.post_id
+        JOIN   users u          ON cp.user_id = u.id
+        WHERE  ar.user_id = ?
+          ${extraWhere}
         ORDER BY cp.departure_date ASC
-      `, [userId]); 
-      
+        `,
+        params
+      );
+  
       res.json(rides);
     } catch (error) {
-      console.error('Error fetching carpool posts:', error);
-      res.status(500).json({ message: 'Server error fetching carpool posts' });
+      console.error('Error fetching ride history:', error);
+      res.status(500).json({ message: 'Server error fetching ride history' });
     }
   };
+  
 
 
   const cancelRide = async (req, res) => {

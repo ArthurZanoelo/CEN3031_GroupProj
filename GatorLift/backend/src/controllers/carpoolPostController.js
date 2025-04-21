@@ -49,6 +49,22 @@ const getAllCarpoolPosts = async (req, res) => {
     }
     const userId = req.user.id;
 
+    const { from, to, day, minSeats } = req.query;
+    let extraWhere = '';
+    const params   = [userId];
+
+    if (day) {
+      extraWhere += ' AND DATE(cp.departure_date) = ?';
+      params.push(day);
+    } else {
+      if (from) { extraWhere += ' AND cp.departure_date >= ?'; params.push(from); }
+      if (to)   { extraWhere += ' AND cp.departure_date <= ?'; params.push(to);   }
+    }
+    if (minSeats) {
+      extraWhere += ' AND (cp.seats_available - IFNULL(ac.acceptedCnt,0)) >= ?';
+      params.push(parseInt(minSeats, 10));
+    }
+
     const [rows] = await db.execute(`
       SELECT
         cp.*,
@@ -62,15 +78,14 @@ const getAllCarpoolPosts = async (req, res) => {
           FROM   accepted_rides
           GROUP  BY post_id
       ) ac ON ac.post_id = cp.id
-      /* Hide rides THIS user already accepted */
       WHERE  cp.id NOT IN (
         SELECT post_id FROM accepted_rides WHERE user_id = ?
       )
-      /* Hide rides that are already full */
         AND (cp.seats_available - IFNULL(ac.acceptedCnt, 0)) > 0
+        ${extraWhere}
       ORDER BY cp.departure_date ASC
       `,
-      [userId]                 // <-- exactly ONE placeholder ⇔ ONE value
+      params
     );
 
     res.json(rows);
