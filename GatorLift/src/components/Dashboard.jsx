@@ -32,7 +32,7 @@ function Dashboard() {
           <Card style={{ width: '18rem' }}>
             <Card.Body>
               <Card.Title>Offer a Ride</Card.Title>
-              <Button variant="primary" onClick={() => navigate('/offer-ride')}>Get Started</Button>
+              <Button variant="primary" onClick={() => navigate('/create-post')}>Get Started</Button>
             </Card.Body>
           </Card>
 
@@ -56,6 +56,20 @@ function Dashboard() {
               <Button variant="primary" onClick={() => navigate('/profile')}>Edit Profile</Button>
             </Card.Body>
           </Card>
+        </div>
+      )}
+
+      {location.pathname === '/offer-ride' && (
+        <div className="text-center">
+          <p>Create a new carpool post to offer a ride to others.</p>
+          <Button 
+            variant="primary" 
+            size="lg" 
+            className="mt-3" 
+            onClick={() => navigate('/create-post')}
+          >
+            Create Carpool Post
+          </Button>
         </div>
       )}
     </Container>
