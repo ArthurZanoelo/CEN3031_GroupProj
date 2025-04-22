@@ -42,23 +42,105 @@ const createCarpoolPost = async (req, res) => {
     }
 };
 
-// New: Get all carpool posts
 const getAllCarpoolPosts = async (req, res) => {
-    try {
-        const [rows] = await db.execute(`
-            SELECT carpool_posts.*, users.email as userEmail
-            FROM carpool_posts
-            JOIN users ON carpool_posts.user_id = users.id
-            ORDER BY carpool_posts.departure_date ASC
-        `);
-        res.json(rows);
-    } catch (error) {
-        console.error('Error fetching carpool posts:', error);
-        res.status(500).json({ error: 'Failed to fetch carpool posts' });
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'Unauthorized' });
     }
+    const userId = req.user.id;
+
+    const { from, to, day, minSeats } = req.query;
+    let extraWhere = '';
+    const params   = [userId];
+
+    if (day) {
+      extraWhere += ' AND DATE(cp.departure_date) = ?';
+      params.push(day);
+    } else {
+      if (from) { extraWhere += ' AND cp.departure_date >= ?'; params.push(from); }
+      if (to)   { extraWhere += ' AND cp.departure_date <= ?'; params.push(to);   }
+    }
+    if (minSeats) {
+      extraWhere += ' AND (cp.seats_available - IFNULL(ac.acceptedCnt,0)) >= ?';
+      params.push(parseInt(minSeats, 10));
+    }
+
+    const [rows] = await db.execute(`
+      SELECT
+        cp.*,
+        u.email AS userEmail,
+        IFNULL(ac.acceptedCnt, 0) AS acceptedCount,
+        (cp.seats_available - IFNULL(ac.acceptedCnt, 0)) AS remainingSeats
+      FROM   carpool_posts cp
+      JOIN   users u  ON cp.user_id = u.id
+      LEFT JOIN (
+          SELECT post_id, COUNT(*) AS acceptedCnt
+          FROM   accepted_rides
+          GROUP  BY post_id
+      ) ac ON ac.post_id = cp.id
+      WHERE  cp.id NOT IN (
+        SELECT post_id FROM accepted_rides WHERE user_id = ?
+      )
+        AND cp.user_id <> ?
+        AND cp.departure_date >= NOW()
+        AND (cp.seats_available - IFNULL(ac.acceptedCnt, 0)) > 0
+        ${extraWhere}
+      ORDER BY cp.departure_date ASC
+      `,
+      [...params, userId]
+    );
+
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching carpool posts:', error);
+    res.status(500).json({ error: 'Failed to fetch carpool posts' });
+  }
+};
+
+const getMyCarpoolPosts = async (req, res) => {
+  if (!req.user?.id) return res.status(401).json({ message: 'Unauthorized' });
+  const [rows] = await db.execute(
+      `SELECT cp.*, IFNULL(ac.acceptedCnt,0) AS acceptedCount
+       FROM   carpool_posts cp
+       LEFT JOIN (
+           SELECT post_id, COUNT(*) AS acceptedCnt
+           FROM   accepted_rides
+           GROUP  BY post_id
+       ) ac ON ac.post_id = cp.id
+       WHERE  cp.user_id = ?
+       ORDER  BY cp.departure_date ASC`,
+      [req.user.id]
+  );
+  res.json(rows);
+};
+
+const updateCarpoolPost = async (req, res) => {
+  if (!req.user?.id) return res.status(401).json({ message: 'Unauthorized' });
+  const { id } = req.params;
+  const { departureLocation, arrivalLocation, departureDate, seatsAvailable, contactInfo } = req.body;
+  await db.execute(
+      `UPDATE carpool_posts
+         SET departure_location = ?, arrival_location = ?, departure_date = ?,
+             seats_available    = ?, contact_info     = ?
+       WHERE id = ? AND user_id = ?`,
+      [departureLocation, arrivalLocation, departureDate,
+       parseInt(seatsAvailable,10), contactInfo || null, id, req.user.id]
+  );
+  res.json({ message: 'Post updated' });
+};
+
+const deleteCarpoolPost = async (req, res) => {
+  if (!req.user?.id) return res.status(401).json({ message: 'Unauthorized' });
+  const { id } = req.params;
+  await db.execute('DELETE FROM accepted_rides WHERE post_id = ?', [id]);
+  await db.execute('DELETE FROM carpool_posts WHERE id = ? AND user_id = ?', [id, req.user.id]);
+  res.json({ message: 'Post deleted' });
 };
 
 module.exports = {
     createCarpoolPost,
-    getAllCarpoolPosts
+    getAllCarpoolPosts,
+    getMyCarpoolPosts,
+    updateCarpoolPost,
+    deleteCarpoolPost
 }; 

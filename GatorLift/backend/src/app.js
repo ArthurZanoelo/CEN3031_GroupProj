@@ -3,6 +3,8 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const authController = require('./controllers/authController');
 const carpoolPostController = require('./controllers/carpoolPostController');
+const ProfileController = require('./controllers/ProfileController');
+const RideHistoryController = require('./controllers/RideHistoryController');
 const auth = require('./middleware/auth');
 require('dotenv').config();
 
@@ -29,18 +31,28 @@ app.post('/api/auth/login', authController.login);
 app.post('/api/auth/logout', auth, authController.logout);
 app.get('/api/auth/verify', auth, authController.verifyToken);
 
+app.get('/api/profile', auth, ProfileController.getProfile);
+app.put('/api/profile', auth, ProfileController.updateProfile);
+
 // Carpool post routes
 app.post('/api/carpool-posts', auth, (req, res, next) => {
   console.log('User from auth middleware:', req.user);
   console.log('Request body:', req.body);
   next();
 }, carpoolPostController.createCarpoolPost);
-app.get('/api/carpool-posts', carpoolPostController.getAllCarpoolPosts);
+app.get('/api/carpool-posts', auth, carpoolPostController.getAllCarpoolPosts);
 
-// Protected route example
-app.get('/api/user/profile', auth, (req, res) => {
-  res.json({ message: 'Protected route accessed successfully' });
-});
+app.post('/api/carpool-posts/:postId/accept', auth, RideHistoryController.acceptRide);
+app.delete('/api/ride-history/:postId', auth, RideHistoryController.cancelRide);
+
+app.get('/api/accepted-counts', auth, RideHistoryController.getAcceptedCounts);
+app.get('/api/ride-history', auth, RideHistoryController.getRideHistory);
+
+app.get ( '/api/my-carpool-posts',  auth, carpoolPostController.getMyCarpoolPosts );
+app.put ( '/api/carpool-posts/:id', auth, carpoolPostController.updateCarpoolPost );
+app.delete('/api/carpool-posts/:id', auth, carpoolPostController.deleteCarpoolPost );
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
