@@ -48,6 +48,9 @@ app.delete('/api/ride-history/:postId', auth, RideHistoryController.cancelRide);
 app.get('/api/accepted-counts', auth, RideHistoryController.getAcceptedCounts);
 app.get('/api/ride-history', auth, RideHistoryController.getRideHistory);
 
+app.get ( '/api/my-carpool-posts',  auth, carpoolPostController.getMyCarpoolPosts );
+app.put ( '/api/carpool-posts/:id', auth, carpoolPostController.updateCarpoolPost );
+app.delete('/api/carpool-posts/:id', auth, carpoolPostController.deleteCarpoolPost );
 
 
 

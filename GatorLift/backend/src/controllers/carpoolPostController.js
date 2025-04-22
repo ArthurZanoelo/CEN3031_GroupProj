@@ -81,11 +81,13 @@ const getAllCarpoolPosts = async (req, res) => {
       WHERE  cp.id NOT IN (
         SELECT post_id FROM accepted_rides WHERE user_id = ?
       )
+        AND cp.user_id <> ?
+        AND cp.departure_date >= NOW()
         AND (cp.seats_available - IFNULL(ac.acceptedCnt, 0)) > 0
         ${extraWhere}
       ORDER BY cp.departure_date ASC
       `,
-      params
+      [...params, userId]
     );
 
     res.json(rows);
@@ -95,7 +97,50 @@ const getAllCarpoolPosts = async (req, res) => {
   }
 };
 
+const getMyCarpoolPosts = async (req, res) => {
+  if (!req.user?.id) return res.status(401).json({ message: 'Unauthorized' });
+  const [rows] = await db.execute(
+      `SELECT cp.*, IFNULL(ac.acceptedCnt,0) AS acceptedCount
+       FROM   carpool_posts cp
+       LEFT JOIN (
+           SELECT post_id, COUNT(*) AS acceptedCnt
+           FROM   accepted_rides
+           GROUP  BY post_id
+       ) ac ON ac.post_id = cp.id
+       WHERE  cp.user_id = ?
+       ORDER  BY cp.departure_date ASC`,
+      [req.user.id]
+  );
+  res.json(rows);
+};
+
+const updateCarpoolPost = async (req, res) => {
+  if (!req.user?.id) return res.status(401).json({ message: 'Unauthorized' });
+  const { id } = req.params;
+  const { departureLocation, arrivalLocation, departureDate, seatsAvailable, contactInfo } = req.body;
+  await db.execute(
+      `UPDATE carpool_posts
+         SET departure_location = ?, arrival_location = ?, departure_date = ?,
+             seats_available    = ?, contact_info     = ?
+       WHERE id = ? AND user_id = ?`,
+      [departureLocation, arrivalLocation, departureDate,
+       parseInt(seatsAvailable,10), contactInfo || null, id, req.user.id]
+  );
+  res.json({ message: 'Post updated' });
+};
+
+const deleteCarpoolPost = async (req, res) => {
+  if (!req.user?.id) return res.status(401).json({ message: 'Unauthorized' });
+  const { id } = req.params;
+  await db.execute('DELETE FROM accepted_rides WHERE post_id = ?', [id]);
+  await db.execute('DELETE FROM carpool_posts WHERE id = ? AND user_id = ?', [id, req.user.id]);
+  res.json({ message: 'Post deleted' });
+};
+
 module.exports = {
     createCarpoolPost,
-    getAllCarpoolPosts
+    getAllCarpoolPosts,
+    getMyCarpoolPosts,
+    updateCarpoolPost,
+    deleteCarpoolPost
 }; 

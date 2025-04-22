@@ -36,7 +36,6 @@ const acceptRide = async (req, res) => {
         return res.status(409).json({ message: 'Ride is full' });
     }
 
-    // UNIQUE index prevents duplicates automatically
     await conn.execute(
         'INSERT INTO accepted_rides (user_id, post_id) VALUES (?, ?)',
         [userId, postId]
@@ -110,7 +109,7 @@ const acceptRide = async (req, res) => {
         SELECT cp.*, u.email AS userEmail
         FROM   carpool_posts cp
         JOIN   accepted_rides ar ON cp.id = ar.post_id
-        JOIN   users u          ON cp.user_id = u.id
+        JOIN   users u ON cp.user_id = u.id
         WHERE  ar.user_id = ?
           ${extraWhere}
         ORDER BY cp.departure_date ASC

@@ -40,7 +40,7 @@ const RideHistory = () => {
   };
 
   const handleRemove = async (postId) => {
-    if (!window.confirm('Remove this upcoming ride?')) return;
+    if (!window.confirm('Remove this ride?')) return;
     try {
       await axios.delete(`http://localhost:3000/api/ride-history/${postId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -173,7 +173,7 @@ const RideHistory = () => {
             {r.contact_info && <div className="text-xs text-gray-400">Contact: {r.contact_info}</div>}
             <div className="text-xs text-gray-400">Posted by: {r.userEmail}</div>
             <div className="text-sm text-gray-500">Accepted by: {acceptedCounts[r.id] || 0}</div>
-            <button onClick={() => {}} className="filter-element px-2 py-1 text-sm mt-2">Leave a review</button>
+            <button onClick={() => handleRemove(r.id)}className="filter-element px-2 py-1 text-sm mt-2">Remove</button>
           </div>
         ))
       )}

@@ -59,7 +59,7 @@ function Dashboard() {
           <Card style={{ width: '18rem' }}>
             <Card.Body>
               <Card.Title>Offer a Ride</Card.Title>
-              <Button variant="primary" onClick={() => navigate('/create-post')}>Get Started</Button>
+              <Button variant="primary" onClick={() => navigate('/create-post')}>Add/Edit Posts</Button>
             </Card.Body>
           </Card>
 
