@@ -44,14 +44,16 @@
 }
 .filter-element {
   border: 1px solid #9ca3af;
-  background-color: #fff;
+  background-color: #f8f9fa;
   border-radius: 0.25rem;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
+  color: #213547 !important;
 }
 
 .filter-element:hover,
 .filter-element:focus {
-  border-color: #3b82f6 !important;
+  background-color: #e9ecef !important;
+  border-color: #6c757d !important;
 }
 
 

@@ -47,38 +47,61 @@ const getAllCarpoolPosts = async (req, res) => {
     if (!req.user?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
+
     const userId = req.user.id;
+    let { from, to, day, minSeats } = req.query;
 
-    const { from, to, day, minSeats } = req.query;
+    // Sanitize and normalize
+    const extraParams = [];
     let extraWhere = '';
-    const params   = [userId];
 
-    if (day) {
-      extraWhere += ' AND DATE(cp.departure_date) = ?';
-      params.push(day);
+    const parseDate = (dateStr) => {
+      const d = new Date(dateStr);
+      return isNaN(d) ? null : d.toISOString().slice(0, 19).replace('T', ' ');
+    };
+
+    if (day && day.trim() !== '') {
+      const parsedDay = parseDate(day);
+      if (parsedDay) {
+        extraWhere += ' AND DATE(cp.departure_date) = DATE(?)';
+        extraParams.push(parsedDay);
+      }
     } else {
-      if (from) { extraWhere += ' AND cp.departure_date >= ?'; params.push(from); }
-      if (to)   { extraWhere += ' AND cp.departure_date <= ?'; params.push(to);   }
-    }
-    if (minSeats) {
-      extraWhere += ' AND (cp.seats_available - IFNULL(ac.acceptedCnt,0)) >= ?';
-      params.push(parseInt(minSeats, 10));
+      if (from && from.trim() !== '') {
+        const parsedFrom = parseDate(from);
+        if (parsedFrom) {
+          extraWhere += ' AND cp.departure_date >= ?';
+          extraParams.push(parsedFrom);
+        }
+      }
+      if (to && to.trim() !== '') {
+        const parsedTo = parseDate(to);
+        if (parsedTo) {
+          extraWhere += ' AND cp.departure_date <= ?';
+          extraParams.push(parsedTo);
+        }
+      }
     }
 
-    const [rows] = await db.execute(`
+    if (minSeats && !isNaN(minSeats)) {
+      extraWhere += ' AND (cp.seats_available - IFNULL(ac.acceptedCnt,0)) >= ?';
+      extraParams.push(parseInt(minSeats, 10));
+    }
+
+    const query = `
       SELECT
         cp.*,
         u.email AS userEmail,
         IFNULL(ac.acceptedCnt, 0) AS acceptedCount,
         (cp.seats_available - IFNULL(ac.acceptedCnt, 0)) AS remainingSeats
-      FROM   carpool_posts cp
-      JOIN   users u  ON cp.user_id = u.id
+      FROM carpool_posts cp
+      JOIN users u ON cp.user_id = u.id
       LEFT JOIN (
-          SELECT post_id, COUNT(*) AS acceptedCnt
-          FROM   accepted_rides
-          GROUP  BY post_id
+        SELECT post_id, COUNT(*) AS acceptedCnt
+        FROM accepted_rides
+        GROUP BY post_id
       ) ac ON ac.post_id = cp.id
-      WHERE  cp.id NOT IN (
+      WHERE cp.id NOT IN (
         SELECT post_id FROM accepted_rides WHERE user_id = ?
       )
         AND cp.user_id <> ?
@@ -86,16 +109,19 @@ const getAllCarpoolPosts = async (req, res) => {
         AND (cp.seats_available - IFNULL(ac.acceptedCnt, 0)) > 0
         ${extraWhere}
       ORDER BY cp.departure_date ASC
-      `,
-      [...params, userId]
-    );
+    `;
 
+    // Make sure parameters are in correct order
+    const params = [userId, userId, ...extraParams];
+
+    const [rows] = await db.execute(query, params);
     res.json(rows);
   } catch (error) {
     console.error('Error fetching carpool posts:', error);
     res.status(500).json({ error: 'Failed to fetch carpool posts' });
   }
 };
+
 
 const getMyCarpoolPosts = async (req, res) => {
   if (!req.user?.id) return res.status(401).json({ message: 'Unauthorized' });

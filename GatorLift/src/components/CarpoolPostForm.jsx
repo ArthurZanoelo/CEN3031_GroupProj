@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { FaArrowLeft } from 'react-icons/fa';
 
 const CarpoolPostForm = () => {
     const navigate = useNavigate();
@@ -17,7 +18,6 @@ const CarpoolPostForm = () => {
     const [success, setSuccess] = useState('');
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [userProfile, setUserProfile] = useState(null);
-    const [myPosts, setMyPosts] = useState([]);
     const [editingId, setEditingId] = useState(null);
 
 
@@ -62,7 +62,6 @@ const CarpoolPostForm = () => {
 
         if (currentUser) {
             fetchProfile();
-            fetchMyPosts();
         }
     }, [currentUser]);
 
@@ -74,12 +73,6 @@ const CarpoolPostForm = () => {
         }));
     };
 
-    const fetchMyPosts = async () => {
-            const res = await axios.get('http://localhost:3000/api/my-carpool-posts', {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            setMyPosts(res.data);
-        };
 
     const handleShowConfirmation = (e) => {
         e.preventDefault();
@@ -152,7 +145,6 @@ const CarpoolPostForm = () => {
             });
             setShowConfirmation(false);
             setEditingId(null);
-            fetchMyPosts();
         } catch (err) {
             console.error('Error creating post:', err);
             let errorMessage = 'Failed to create carpool post';
@@ -188,30 +180,26 @@ const CarpoolPostForm = () => {
     };
 
 
-    const handleDelete = async (id) => {
-            if (!window.confirm('Delete this post?')) return;
-            await axios.delete(`http://localhost:3000/api/carpool-posts/${id}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            });
-            setMyPosts(p => p.filter(x => x.id !== id));
-        };
-        
-        const handleEdit = (p) => {
-            setFormData({
-                departureLocation: p.departure_location,
-                arrivalLocation:   p.arrival_location,
-                departureDate:     new Date( 
-                    new Date(p.departure_date).getTime() - new Date().getTimezoneOffset()*60000).toISOString().slice(0,16),
-                seatsAvailable:    p.seats_available.toString(),
-                contactInfo:       p.contact_info || ''
-            });
-            setEditingId(p.id);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
 
     return (
-        <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-6 text-center">Create Carpool Post</h2>
+        <div>
+            <button 
+                onClick={() => navigate('/dashboard')} 
+                className="btn btn-link p-0"
+                style={{ 
+                    color: '#0d6efd', 
+                    textDecoration: 'none',
+                    position: 'absolute',
+                    top: '80px',
+                    left: '20px',
+                    zIndex: 1000
+                }}
+            >
+                <FaArrowLeft className="me-2" />
+                Back to Dashboard
+            </button>
+            <div className="mx-auto mt-8 p-4 bg-white rounded-lg shadow-md" style={{ maxWidth: '400px' }}>
+                <h2 className="text-2xl font-bold mb-6 text-center">Create Carpool Post</h2>
             
             {error && (
                 <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
@@ -226,9 +214,9 @@ const CarpoolPostForm = () => {
             )}
 
             {!showConfirmation ? (
-                <form onSubmit={handleShowConfirmation} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                <form onSubmit={handleShowConfirmation}>
+                    <div className="mb-2">
+                        <label className="form-label">
                             Departure Location
                         </label>
                         <input
@@ -237,12 +225,17 @@ const CarpoolPostForm = () => {
                             value={formData.departureLocation}
                             onChange={handleChange}
                             required
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            className="form-control"
+                            style={{
+                                backgroundColor: "#d3d3d3",  // light grey
+                                border: "1px solid #ccc",
+                                color: "#000"
+                              }}
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                    <div className="mb-2">
+                        <label className="form-label">
                             Arrival Location
                         </label>
                         <input
@@ -251,12 +244,17 @@ const CarpoolPostForm = () => {
                             value={formData.arrivalLocation}
                             onChange={handleChange}
                             required
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            className="form-control"
+                            style={{
+                                backgroundColor: "#d3d3d3",  // light grey
+                                border: "1px solid #ccc",
+                                color: "#000"
+                              }}
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                    <div className="mb-2">
+                        <label className="form-label">
                             Departure Date and Time
                         </label>
                         <input
@@ -265,12 +263,17 @@ const CarpoolPostForm = () => {
                             value={formData.departureDate}
                             onChange={handleChange}
                             required
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            className="form-control datetime-input"
+                            style={{
+                                backgroundColor: "#d3d3d3",  // light grey
+                                border: "1px solid #ccc",
+                                color: "#000"
+                              }}
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                    <div className="mb-2">
+                        <label className="form-label">
                             Number of Seats Available
                         </label>
                         <input
@@ -280,12 +283,17 @@ const CarpoolPostForm = () => {
                             onChange={handleChange}
                             required
                             min="1"
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            className="form-control"
+                            style={{
+                                backgroundColor: "#d3d3d3",  // light grey
+                                border: "1px solid #ccc",
+                                color: "#000"
+                              }}
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                    <div className="mb-2">
+                        <label className="form-label">
                             Contact Information (Optional)
                         </label>
                         <input
@@ -293,7 +301,12 @@ const CarpoolPostForm = () => {
                             name="contactInfo"
                             value={formData.contactInfo}
                             onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            className="form-control"
+                            style={{
+                                backgroundColor: "#d3d3d3",  // light grey
+                                border: "1px solid #ccc",
+                                color: "#000"
+                              }}
                         />
                     </div>
 
@@ -337,40 +350,7 @@ const CarpoolPostForm = () => {
                 </div>
             )}
 
-            {myPosts.length > 0 && (
-                <div className="mt-10">
-                    <h3 className="text-xl font-semibold mt-5 text-center">Your Posts</h3>
-                    <div className="space-y-6">
-                        {myPosts.map(post => (
-                            <div key={post.id}
-                                    className="p-4 bg-white rounded-lg border border-gray-300 shadow-sm">
-                                <div className="flex justify-between mb-1">
-                                    <span className="font-semibold">{post.departure_location} → {post.arrival_location}
-                                    </span>
-                                    <span className="text-sm text-gray-500"> {new Date(post.departure_date).toLocaleString()}
-                                    </span>
-                                </div>
-                                <div className="text-sm mb-1">
-                                    Seats&nbsp;{post.seats_available} – Accepted&nbsp;{post.acceptedCount}
-                                </div>
-                                {post.contact_info && (
-                                    <div className="text-xs text-gray-400">{post.contact_info}</div>
-                                )}
-                                <div className="flex gap-2 mt-2">
-                                    <button onClick={() => handleEdit(post)}
-                                            className="filter-element px-2 py-1 text-sm">
-                                        Edit
-                                    </button>
-                                    <button onClick={() => handleDelete(post.id)}
-                                            className="filter-element px-2 py-1 text-sm">
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
+            </div>
         </div>
     );
 };

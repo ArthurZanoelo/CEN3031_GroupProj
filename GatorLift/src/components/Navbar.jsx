@@ -44,6 +44,9 @@ function Navbar() {
                 } 
                 id="basic-nav-dropdown"
               >
+                <NavDropdown.Item onClick={() => navigate('/profile')}>
+                  Account Settings
+                </NavDropdown.Item>
                 <NavDropdown.Item onClick={handleLogout}>
                   Sign Out
                 </NavDropdown.Item>

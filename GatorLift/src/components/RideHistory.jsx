@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { FaArrowLeft } from 'react-icons/fa';
 
 const DEFAULT_FILTERS = { from: '', to: '', day: '', minSeats: '' };
 const RideHistory = () => {
+  const navigate = useNavigate();
   const [rides, setRides] = useState([]);
   const [acceptedCounts, setAcceptedCounts] = useState({});
   const [error, setError]   = useState('');
@@ -13,15 +16,20 @@ const RideHistory = () => {
   const fetchHistory = async () => {
     setLoading(true);
     try {
+      // make sure minSeats is sent as a number, not a string
+      const params = { ...filters };
+      if (params.minSeats) params.minSeats = Number(params.minSeats);
+  
       const [histRes, countsRes] = await Promise.all([
         axios.get('http://localhost:3000/api/ride-history', {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-          params: filters
+          params
         }),
         axios.get('http://localhost:3000/api/accepted-counts', {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         })
       ]);
+  
       setRides(histRes.data);
       setAcceptedCounts(countsRes.data);
     } catch {
@@ -30,7 +38,7 @@ const RideHistory = () => {
       setLoading(false);
     }
   };
-
+  
   useEffect(() => { fetchHistory(); }, []);
   useEffect(() => { if (!loading) fetchHistory(); }, [filters]);
 
@@ -68,11 +76,27 @@ const RideHistory = () => {
   if (error)   return <div className="text-red-600">{error}</div>;
 
   return (
-    <div className="max-w-2xl mx-auto mt-8">
-      <h1 className="text-2xl font-bold text-center mb-5">Your Rides</h1>
+    <div>
+      <button 
+        onClick={() => navigate('/dashboard')} 
+        className="btn btn-link p-0"
+        style={{ 
+          color: '#0d6efd', 
+          textDecoration: 'none',
+          position: 'absolute',
+          top: '80px',
+          left: '20px',
+          zIndex: 1000
+        }}
+      >
+        <FaArrowLeft className="me-2" />
+        Back to Dashboard
+      </button>
+      <div className="mx-auto mt-8" style={{ maxWidth: '500px' }}>
+        <h1 className="text-2xl font-bold text-center mb-5">Your Rides</h1>
       <div className="filter-bar mb-6">
-      <div className="d-flex flex-wrap gap-4 justify-content-center">
-    <div className="d-flex flex-column" style={{ width: '13rem' }}>
+      <div className="d-flex flex-wrap justify-content-center">
+    <div className="d-flex flex-column me-3" style={{ width: '13rem' }}>
       <label className="mb-1"><b>Start Date</b></label>
       <input
         type="datetime-local"
@@ -84,7 +108,7 @@ const RideHistory = () => {
       />
     </div>
 
-    <div className="d-flex flex-column" style={{ width: '13rem' }}>
+    <div className="d-flex flex-column me-3" style={{ width: '13rem' }}>
       <label className="mb-1"><b>End Date</b></label>
       <input
         type="datetime-local"
@@ -96,7 +120,7 @@ const RideHistory = () => {
       />
     </div>
 
-    <div className="d-flex flex-column" style={{ width: '10rem' }}>
+    <div className="d-flex flex-column me-3" style={{ width: '10rem' }}>
       <label className="mb-1"><b>On Date</b></label>
       <input
         type="date"
@@ -108,7 +132,7 @@ const RideHistory = () => {
       />
     </div>
 
-    <div className="d-flex flex-column" style={{ width: '6rem' }}>
+    <div className="d-flex flex-column me-3" style={{ width: '6rem' }}>
       <label className="mb-1"><b>Min Seats</b></label>
       <input
         type="number"
@@ -122,7 +146,7 @@ const RideHistory = () => {
       />
     </div>
 
-    <div className="d-flex flex-column" style={{ width: '6rem' }}>
+    <div className="d-flex flex-column me-3" style={{ width: '6rem' }}>
       <label className="mb-1 invisible">Apply</label>
       <button onClick={() => setFilters(pendingFilters)}  className="filter-element px-3 py-1 text-sm">Apply</button>
       </div>
@@ -141,7 +165,8 @@ const RideHistory = () => {
         upcoming.map(r => (
           <div
             key={r.id}
-            className="p-4 bg-white rounded-lg border border-gray-300 shadow-sm mt-6 first:mt-0"
+            className="p-4 rounded-lg border border-gray-300 shadow-sm mb-4"
+            style={{ backgroundColor: '#e6f3ff' }}
           >
             <div className="flex justify-between mb-2">
               <span className="font-semibold">{r.departure_location} → {r.arrival_location}</span>
@@ -163,7 +188,8 @@ const RideHistory = () => {
         past.map(r => (
           <div
             key={r.id}
-            className="p-4 bg-white rounded-lg border border-gray-300 shadow-sm mt-6 first:mt-0"
+            className="p-4 rounded-lg border border-gray-300 shadow-sm mb-4"
+            style={{ backgroundColor: '#e6f3ff' }}
           >
             <div className="flex justify-between mb-2">
               <span className="font-semibold">{r.departure_location} → {r.arrival_location}</span>
@@ -177,6 +203,7 @@ const RideHistory = () => {
           </div>
         ))
       )}
+      </div>
     </div>
   );
 };
